@@ -276,3 +276,31 @@ def test_instrument_load_command_outputs_json():
         "instrument": "Operator",
     }
     api.load_instrument.assert_called_once_with(0, "Operator")
+
+
+def test_audio_import_command_outputs_json():
+    """The CLI should import an audio file into a clip slot."""
+    runner = CliRunner()
+
+    with patch("cli_anything.ableton.ableton_cli.AbletonAPI") as api_cls:
+        api = api_cls.return_value
+        api.import_audio_clip.return_value = {
+            "success": True,
+            "track_id": 2,
+            "clip_index": 0,
+            "file_path": "/tmp/water-loop.wav",
+        }
+
+        result = runner.invoke(
+            cli,
+            ["--json", "audio", "import", "2", "0", "/tmp/water-loop.wav"],
+        )
+
+    assert result.exit_code == 0
+    assert json.loads(result.output) == {
+        "success": True,
+        "track_id": 2,
+        "clip_index": 0,
+        "file_path": "/tmp/water-loop.wav",
+    }
+    api.import_audio_clip.assert_called_once_with(2, 0, "/tmp/water-loop.wav")

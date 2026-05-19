@@ -74,6 +74,7 @@ OSC_ADDRESSES = frozen_dict({
     "clip_record": "/live/toggle-brothers/clip/record",
     "clip_select": "/live/toggle-brothers/clip/select",
     "clip_slot_create": "/live/clip_slot/create_clip",
+    "clip_slot_create_audio": "/live/clip_slot/create_audio_clip",
     "clip_add_notes": "/live/clip/add/notes",
     "clip_get_notes": "/live/clip/get/notes",
 

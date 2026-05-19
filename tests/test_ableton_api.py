@@ -406,6 +406,45 @@ class TestAbletonAPI:
             "instrument": "Foo",
         }
 
+    def test_import_audio_clip(self, api):
+        """Test importing an audio file into an audio clip slot."""
+        api._bridge.send_message.return_value = Mock(
+            success=True,
+            data={"params": [2, 0, "/tmp/water-loop.wav"]},
+        )
+
+        result = api.import_audio_clip(2, 0, "/tmp/water-loop.wav")
+
+        assert result == {
+            "success": True,
+            "track_id": 2,
+            "clip_index": 0,
+            "file_path": "/tmp/water-loop.wav",
+        }
+        api._bridge.send_message.assert_called_once_with(
+            "/live/clip_slot/create_audio_clip",
+            2,
+            0,
+            "/tmp/water-loop.wav",
+        )
+
+    def test_import_audio_clip_reports_abletonosc_error(self, api):
+        """Test audio import failures are surfaced."""
+        api._bridge.send_message.return_value = Mock(
+            success=True,
+            data={"address": "/live/error", "params": ["Cannot create audio clip"]},
+        )
+
+        result = api.import_audio_clip(2, 0, "/tmp/missing.wav")
+
+        assert result == {
+            "success": False,
+            "error": "Cannot create audio clip",
+            "track_id": 2,
+            "clip_index": 0,
+            "file_path": "/tmp/missing.wav",
+        }
+
     def test_launch_scene(self, api):
         """Test launch scene."""
         api._bridge.send_message.return_value = Mock(success=True)

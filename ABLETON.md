@@ -73,6 +73,25 @@ cli-ableton --json instrument load 0 Operator
 cli-ableton clip launch 0 0
 ```
 
+## Audio Clip Import Extension
+
+This local setup also adds an audio clip import endpoint to
+`abletonosc/clip_slot.py`:
+
+```text
+/live/clip_slot/create_audio_clip
+```
+
+Use it through the CLI:
+
+```bash
+cli-ableton --json audio import 3 0 /absolute/path/to/water-loop.wav
+cli-ableton clip launch 3 0
+```
+
+The target must be an audio track. In the current test set, `4-Audio` is track
+index `3`.
+
 ## Current Coverage
 
 Confirmed against Ableton Live 12 with AbletonOSC:
@@ -91,6 +110,7 @@ Confirmed against Ableton Live 12 with AbletonOSC:
   `/live/track/set/current_monitoring_state`, and `/live/track/set/arm`
 - MIDI note inspection through `/live/clip/get/notes`
 - Instrument listing/loading through the local browser extension endpoints
+- Audio file import through the local clip slot extension endpoint
 
 Legacy commands for devices, presets, scenes, and MIDI effects still need full
 mapping against the current AbletonOSC API.

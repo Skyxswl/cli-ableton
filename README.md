@@ -123,6 +123,19 @@ cli-ableton --json instrument load 0 Operator
 cli-ableton clip launch 0 0
 ```
 
+## Import A Water Sample As An Audio Clip
+
+Import a local wav file into an audio track clip slot:
+
+```bash
+cli-ableton --json audio import 3 0 /absolute/path/to/water-loop.wav
+cli-ableton clip launch 3 0
+```
+
+The target track must be an audio track. If Ableton returns `Audio clips can
+only be created on audio tracks`, run `cli-ableton --json track list` and choose
+an audio track index.
+
 ## Commands
 
 - `status` - Check AbletonOSC connectivity
@@ -136,6 +149,7 @@ cli-ableton clip launch 0 0
 - `input check` - Check whether a clip contains recorded MIDI notes
 - `instrument list` - List loadable instruments exposed by the Ableton browser
 - `instrument load` - Load an instrument onto a MIDI track
+- `audio import` - Import an audio file into an audio clip slot
 - `transport play` / `transport stop` / `transport record` - Control playback
 
 Some legacy device, preset, and MIDI-effect commands are still present but need

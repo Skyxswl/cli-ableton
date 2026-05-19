@@ -420,6 +420,26 @@ def instrument_load(ctx: click.Context, track_id: int, name: str) -> None:
     output_result(result, ctx.obj["json_output"])
 
 
+# Audio Commands
+
+@cli.group()
+def audio() -> None:
+    """Audio clip operations."""
+    pass
+
+
+@audio.command(name="import")
+@click.argument("track_id", type=int)
+@click.argument("clip_index", type=int)
+@click.argument("file_path", type=str)
+@click.pass_context
+def audio_import(ctx: click.Context, track_id: int, clip_index: int, file_path: str) -> None:
+    """Import an audio file into a clip slot."""
+    api = ctx.obj["api"]
+    result = api.import_audio_clip(track_id, clip_index, file_path)
+    output_result(result, ctx.obj["json_output"])
+
+
 # MIDI Effect Commands
 
 @cli.group()

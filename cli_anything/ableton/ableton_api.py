@@ -795,6 +795,48 @@ class AbletonAPI:
             "instrument": loaded_instrument,
         }
 
+    def import_audio_clip(
+        self,
+        track_id: int,
+        clip_index: int,
+        file_path: str,
+    ) -> Dict[str, Any]:
+        """Import an audio file into an audio clip slot."""
+        response = self._bridge.send_message(
+            OSC_ADDRESSES["clip_slot_create_audio"],
+            track_id,
+            clip_index,
+            file_path,
+        )
+        if not response.success:
+            return {
+                "success": False,
+                "error": response.error,
+                "track_id": track_id,
+                "clip_index": clip_index,
+                "file_path": file_path,
+            }
+        if response.data and response.data.get("address") == "/live/error":
+            params = response.data.get("params", [])
+            return {
+                "success": False,
+                "error": params[0] if params else ErrorCode.ABLETON_ERROR.value,
+                "track_id": track_id,
+                "clip_index": clip_index,
+                "file_path": file_path,
+            }
+
+        params = response.data.get("params", []) if response.data else []
+        imported_track = int(params[0]) if params else track_id
+        imported_clip = int(params[1]) if len(params) > 1 else clip_index
+        imported_path = str(params[2]) if len(params) > 2 else file_path
+        return {
+            "success": True,
+            "track_id": imported_track,
+            "clip_index": imported_clip,
+            "file_path": imported_path,
+        }
+
     def record_clip(self, track_id: int, clip_index: int, enable: bool) -> Dict[str, Any]:
         """
         Start or stop clip recording.
