@@ -342,6 +342,56 @@ def scene_stop(ctx: click.Context, scene_index: int) -> None:
     output_result(result, ctx.obj["json_output"])
 
 
+# MIDI Input Commands
+
+@cli.group(name="input")
+def midi_input() -> None:
+    """External MIDI input testing."""
+    pass
+
+
+@midi_input.command(name="routes")
+@click.argument("track_id", type=int)
+@click.pass_context
+def input_routes(ctx: click.Context, track_id: int) -> None:
+    """List input sources available to a track."""
+    api = ctx.obj["api"]
+    result = api.get_track_input_routes(track_id)
+    output_result(result, ctx.obj["json_output"])
+
+
+@midi_input.command(name="route")
+@click.argument("source", type=str)
+@click.argument("track_id", type=int)
+@click.option("--channel", type=str, help="Input channel display name")
+@click.option("--monitor", type=int, default=1, help="Ableton monitoring state")
+@click.option("--arm/--no-arm", default=True, help="Arm the track for recording")
+@click.pass_context
+def input_route(
+    ctx: click.Context,
+    source: str,
+    track_id: int,
+    channel: Optional[str],
+    monitor: int,
+    arm: bool,
+) -> None:
+    """Route a track to a named MIDI input source."""
+    api = ctx.obj["api"]
+    result = api.route_midi_input(track_id, source, channel, monitor, arm)
+    output_result(result, ctx.obj["json_output"])
+
+
+@midi_input.command(name="check")
+@click.argument("track_id", type=int)
+@click.argument("clip_index", type=int)
+@click.pass_context
+def input_check(ctx: click.Context, track_id: int, clip_index: int) -> None:
+    """Check whether a clip captured MIDI notes."""
+    api = ctx.obj["api"]
+    result = api.check_midi_input(track_id, clip_index)
+    output_result(result, ctx.obj["json_output"])
+
+
 # MIDI Effect Commands
 
 @cli.group()

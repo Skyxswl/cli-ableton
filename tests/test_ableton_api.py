@@ -218,6 +218,94 @@ class TestAbletonAPI:
             wait_for_response=False,
         )
 
+    def test_get_track_input_routes(self, api):
+        """Test listing available input routing types for a track."""
+        api._bridge.send_message.return_value = Mock(
+            success=True,
+            data={"params": [0, "Touch Me", "Ext. In"]},
+        )
+
+        result = api.get_track_input_routes(0)
+
+        assert result == {
+            "success": True,
+            "track_id": 0,
+            "inputs": ["Touch Me", "Ext. In"],
+        }
+        api._bridge.send_message.assert_called_once_with(
+            "/live/track/get/available_input_routing_types",
+            0,
+        )
+
+    def test_route_midi_input_sets_route_monitor_and_arm(self, api):
+        """Test configuring a track to listen to an external MIDI input."""
+        api._bridge.send_message.side_effect = [
+            Mock(success=True, data={"params": [0, "Touch Me", "Ext. In"]}),
+            Mock(success=True),
+            Mock(success=True),
+            Mock(success=True),
+            Mock(success=True),
+        ]
+
+        result = api.route_midi_input(
+            track_id=0,
+            source="touch me",
+            channel="All Channels",
+            monitor=1,
+            arm=True,
+        )
+
+        assert result["success"] is True
+        assert result["source"] == "Touch Me"
+        assert result["channel"] == "All Channels"
+        api._bridge.send_message.assert_has_calls([
+            call("/live/track/get/available_input_routing_types", 0),
+            call("/live/track/set/input_routing_type", 0, "Touch Me", wait_for_response=False),
+            call("/live/track/set/input_routing_channel", 0, "All Channels", wait_for_response=False),
+            call("/live/track/set/current_monitoring_state", 0, 1, wait_for_response=False),
+            call("/live/track/set/arm", 0, 1, wait_for_response=False),
+        ])
+
+    def test_route_midi_input_reports_missing_source(self, api):
+        """Test missing input source returns available choices."""
+        api._bridge.send_message.return_value = Mock(
+            success=True,
+            data={"params": [0, "Ext. In"]},
+        )
+
+        result = api.route_midi_input(0, "Touch Me")
+
+        assert result["success"] is False
+        assert "Touch Me" in result["error"]
+        assert result["available_inputs"] == ["Ext. In"]
+
+    def test_get_clip_notes_parses_notes(self, api):
+        """Test parsing MIDI notes from a clip."""
+        api._bridge.send_message.return_value = Mock(
+            success=True,
+            data={"params": [60, 0.0, 0.5, 100.0, False, 64, 0.5, 0.25, 90.0, False]},
+        )
+
+        result = api.get_clip_notes(0, 1)
+
+        assert result["success"] is True
+        assert result["note_count"] == 2
+        assert result["notes"] == [
+            {"pitch": 60, "start": 0.0, "duration": 0.5, "velocity": 100, "mute": False},
+            {"pitch": 64, "start": 0.5, "duration": 0.25, "velocity": 90, "mute": False},
+        ]
+        api._bridge.send_message.assert_called_once_with("/live/clip/get/notes", 0, 1)
+
+    def test_check_midi_input_fails_when_clip_has_no_notes(self, api):
+        """Test MIDI input check reports no recorded notes."""
+        api._bridge.send_message.return_value = Mock(success=True, data={"params": []})
+
+        result = api.check_midi_input(0, 1)
+
+        assert result["success"] is False
+        assert result["note_count"] == 0
+        assert result["error"] == "No MIDI notes recorded in clip 1 on track 0"
+
     def test_launch_scene(self, api):
         """Test launch scene."""
         api._bridge.send_message.return_value = Mock(success=True)

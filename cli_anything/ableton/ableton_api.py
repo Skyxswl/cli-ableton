@@ -381,6 +381,135 @@ class AbletonAPI:
             "panning": panning,
         }
 
+    def get_track_input_routes(self, track_id: int) -> Dict[str, Any]:
+        """
+        List input routing types available to a track.
+
+        AbletonOSC returns the queried track id as the first param; this method
+        strips it and returns only route display names.
+        """
+        response = self._bridge.send_message(
+            OSC_ADDRESSES["track_input_routes"],
+            track_id,
+        )
+        if not response.success:
+            return {
+                "success": False,
+                "error": response.error,
+                "track_id": track_id,
+                "inputs": [],
+            }
+
+        params = response.data.get("params", []) if response.data else []
+        inputs = list(params)
+        if inputs and inputs[0] == track_id:
+            inputs = inputs[1:]
+
+        return {
+            "success": True,
+            "track_id": track_id,
+            "inputs": inputs,
+        }
+
+    def route_midi_input(
+        self,
+        track_id: int,
+        source: str,
+        channel: Optional[str] = None,
+        monitor: int = 1,
+        arm: bool = True,
+    ) -> Dict[str, Any]:
+        """
+        Configure a track to receive MIDI from a named Ableton input route.
+        """
+        routes = self.get_track_input_routes(track_id)
+        if not routes["success"]:
+            return routes
+
+        available_inputs = routes["inputs"]
+        source_match = next(
+            (item for item in available_inputs if item.lower() == source.lower()),
+            None,
+        )
+        if source_match is None:
+            return {
+                "success": False,
+                "error": f"Input source not found: {source}",
+                "track_id": track_id,
+                "available_inputs": available_inputs,
+            }
+
+        route_response = self._bridge.send_message(
+            OSC_ADDRESSES["track_input_type"],
+            track_id,
+            source_match,
+            wait_for_response=False,
+        )
+        if not route_response.success:
+            return {
+                "success": False,
+                "error": route_response.error,
+                "track_id": track_id,
+                "source": source_match,
+            }
+
+        if channel is not None:
+            channel_response = self._bridge.send_message(
+                OSC_ADDRESSES["track_input_channel"],
+                track_id,
+                channel,
+                wait_for_response=False,
+            )
+            if not channel_response.success:
+                return {
+                    "success": False,
+                    "error": channel_response.error,
+                    "track_id": track_id,
+                    "source": source_match,
+                    "channel": channel,
+                }
+
+        monitor_response = self._bridge.send_message(
+            OSC_ADDRESSES["track_monitor"],
+            track_id,
+            monitor,
+            wait_for_response=False,
+        )
+        if not monitor_response.success:
+            return {
+                "success": False,
+                "error": monitor_response.error,
+                "track_id": track_id,
+                "source": source_match,
+                "channel": channel,
+            }
+
+        if arm:
+            arm_response = self._bridge.send_message(
+                OSC_ADDRESSES["track_arm"],
+                track_id,
+                1,
+                wait_for_response=False,
+            )
+            if not arm_response.success:
+                return {
+                    "success": False,
+                    "error": arm_response.error,
+                    "track_id": track_id,
+                    "source": source_match,
+                    "channel": channel,
+                    "monitor": monitor,
+                }
+
+        return {
+            "success": True,
+            "track_id": track_id,
+            "source": source_match,
+            "channel": channel,
+            "monitor": monitor,
+            "armed": arm,
+        }
+
     # Clip Operations
 
     def launch_clip(self, track_id: int, clip_index: int) -> Dict[str, Any]:
@@ -535,6 +664,68 @@ class AbletonAPI:
             "velocity": velocity,
             "mute": mute,
         }
+
+    def get_clip_notes(self, track_id: int, clip_index: int) -> Dict[str, Any]:
+        """
+        Read MIDI notes from an existing clip.
+        """
+        response = self._bridge.send_message(
+            OSC_ADDRESSES["clip_get_notes"],
+            track_id,
+            clip_index,
+        )
+        if not response.success:
+            return {
+                "success": False,
+                "error": response.error,
+                "track_id": track_id,
+                "clip_index": clip_index,
+                "notes": [],
+                "note_count": 0,
+            }
+
+        params = response.data.get("params", []) if response.data else []
+        if len(params) % 5 != 0:
+            return {
+                "success": False,
+                "error": f"Unexpected note payload length: {len(params)}",
+                "track_id": track_id,
+                "clip_index": clip_index,
+                "notes": [],
+                "note_count": 0,
+            }
+
+        notes = []
+        for offset in range(0, len(params), 5):
+            pitch, start, duration, velocity, mute = params[offset:offset + 5]
+            notes.append({
+                "pitch": int(pitch),
+                "start": float(start),
+                "duration": float(duration),
+                "velocity": int(velocity),
+                "mute": bool(mute),
+            })
+
+        return {
+            "success": True,
+            "track_id": track_id,
+            "clip_index": clip_index,
+            "notes": notes,
+            "note_count": len(notes),
+        }
+
+    def check_midi_input(self, track_id: int, clip_index: int) -> Dict[str, Any]:
+        """Check whether a clip contains recorded MIDI notes."""
+        result = self.get_clip_notes(track_id, clip_index)
+        if not result["success"]:
+            return result
+        if result["note_count"] == 0:
+            return {
+                **result,
+                "success": False,
+                "error": f"No MIDI notes recorded in clip {clip_index} on track {track_id}",
+            }
+        return result
 
     def record_clip(self, track_id: int, clip_index: int, enable: bool) -> Dict[str, Any]:
         """

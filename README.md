@@ -70,6 +70,34 @@ cli-ableton clip stop 0 0
 MIDI does not produce sound by itself. Put an instrument, Drum Rack, Simpler,
 Sampler, or plugin on the target MIDI track before expecting audible output.
 
+## Test An External MIDI Input
+
+First check which MIDI inputs Ableton exposes for the target track:
+
+```bash
+cli-ableton --json input routes 0
+```
+
+If your controller appears as `Touch Me`, route track 0 to it, enable monitor,
+and arm the track:
+
+```bash
+cli-ableton --json input route "Touch Me" 0 --monitor 1 --arm
+```
+
+Record or capture MIDI into a clip in Ableton, then check whether notes were
+recorded:
+
+```bash
+cli-ableton --json input check 0 0
+```
+
+If `Touch Me` does not appear in `input routes`, enable it in Ableton:
+
+```text
+Settings > Link, Tempo & MIDI > MIDI Ports > Touch Me > Track: On
+```
+
 ## Commands
 
 - `status` - Check AbletonOSC connectivity
@@ -78,6 +106,9 @@ Sampler, or plugin on the target MIDI track before expecting audible output.
 - `clip create` - Create a MIDI clip in a clip slot
 - `clip launch` / `clip stop` - Trigger or stop clips
 - `midi note` - Add a MIDI note to an existing clip
+- `input routes` - List input sources available to a track
+- `input route` - Route a track to an external MIDI input
+- `input check` - Check whether a clip contains recorded MIDI notes
 - `transport play` / `transport stop` / `transport record` - Control playback
 
 Some legacy device, preset, and MIDI-effect commands are still present but need

@@ -139,3 +139,96 @@ def test_midi_note_command_outputs_json():
         "pitch": 60,
     }
     ctrl.add_note.assert_called_once_with(1, 2, 60, 0.0, 0.25, 100, False)
+
+
+def test_input_routes_command_outputs_json():
+    """The CLI should expose available MIDI input routing types."""
+    runner = CliRunner()
+
+    with patch("cli_anything.ableton.ableton_cli.AbletonAPI") as api_cls:
+        api = api_cls.return_value
+        api.get_track_input_routes.return_value = {
+            "success": True,
+            "track_id": 0,
+            "inputs": ["Touch Me", "Ext. In"],
+        }
+
+        result = runner.invoke(cli, ["--json", "input", "routes", "0"])
+
+    assert result.exit_code == 0
+    assert json.loads(result.output) == {
+        "success": True,
+        "track_id": 0,
+        "inputs": ["Touch Me", "Ext. In"],
+    }
+    api.get_track_input_routes.assert_called_once_with(0)
+
+
+def test_input_route_command_outputs_json():
+    """The CLI should route a track to a named MIDI input source."""
+    runner = CliRunner()
+
+    with patch("cli_anything.ableton.ableton_cli.AbletonAPI") as api_cls:
+        api = api_cls.return_value
+        api.route_midi_input.return_value = {
+            "success": True,
+            "track_id": 0,
+            "source": "Touch Me",
+            "channel": "All Channels",
+            "monitor": 1,
+            "armed": True,
+        }
+
+        result = runner.invoke(
+            cli,
+            [
+                "--json",
+                "input",
+                "route",
+                "Touch Me",
+                "0",
+                "--channel",
+                "All Channels",
+                "--monitor",
+                "1",
+                "--arm",
+            ],
+        )
+
+    assert result.exit_code == 0
+    assert json.loads(result.output) == {
+        "success": True,
+        "track_id": 0,
+        "source": "Touch Me",
+        "channel": "All Channels",
+        "monitor": 1,
+        "armed": True,
+    }
+    api.route_midi_input.assert_called_once_with(0, "Touch Me", "All Channels", 1, True)
+
+
+def test_input_check_command_outputs_json():
+    """The CLI should check whether a clip captured MIDI notes."""
+    runner = CliRunner()
+
+    with patch("cli_anything.ableton.ableton_cli.AbletonAPI") as api_cls:
+        api = api_cls.return_value
+        api.check_midi_input.return_value = {
+            "success": True,
+            "track_id": 0,
+            "clip_index": 1,
+            "note_count": 1,
+            "notes": [{"pitch": 60}],
+        }
+
+        result = runner.invoke(cli, ["--json", "input", "check", "0", "1"])
+
+    assert result.exit_code == 0
+    assert json.loads(result.output) == {
+        "success": True,
+        "track_id": 0,
+        "clip_index": 1,
+        "note_count": 1,
+        "notes": [{"pitch": 60}],
+    }
+    api.check_midi_input.assert_called_once_with(0, 1)

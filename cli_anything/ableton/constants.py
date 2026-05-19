@@ -62,6 +62,11 @@ OSC_ADDRESSES = frozen_dict({
     "track_solo": "/live/track/set/solo",
     "track_volume": "/live/track/set/volume",
     "track_panning": "/live/track/set/panning",
+    "track_input_routes": "/live/track/get/available_input_routing_types",
+    "track_input_channels": "/live/track/get/available_input_routing_channels",
+    "track_input_type": "/live/track/set/input_routing_type",
+    "track_input_channel": "/live/track/set/input_routing_channel",
+    "track_monitor": "/live/track/set/current_monitoring_state",
 
     # Clip operations
     "clip_launch": "/live/clip/fire",
