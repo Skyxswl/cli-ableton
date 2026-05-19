@@ -296,6 +296,55 @@ class TestAbletonAPI:
         ]
         api._bridge.send_message.assert_called_once_with("/live/clip/get/notes", 0, 1)
 
+    def test_get_clip_notes_strips_abletonosc_track_and_clip_prefix(self, api):
+        """Test parsing notes when AbletonOSC prefixes track and clip ids."""
+        api._bridge.send_message.return_value = Mock(
+            success=True,
+            data={"params": [0, 1, 60, 0.0, 0.5, 100.0, False]},
+        )
+
+        result = api.get_clip_notes(0, 1)
+
+        assert result["success"] is True
+        assert result["note_count"] == 1
+        assert result["notes"] == [
+            {"pitch": 60, "start": 0.0, "duration": 0.5, "velocity": 100, "mute": False},
+        ]
+
+    def test_get_clip_notes_handles_empty_prefixed_clip(self, api):
+        """Test an empty clip when AbletonOSC returns only track and clip ids."""
+        api._bridge.send_message.return_value = Mock(
+            success=True,
+            data={"params": [0, 1]},
+        )
+
+        result = api.get_clip_notes(0, 1)
+
+        assert result["success"] is True
+        assert result["note_count"] == 0
+        assert result["notes"] == []
+
+    def test_get_clip_notes_reports_abletonosc_error(self, api):
+        """Test AbletonOSC error payloads are surfaced as operation failures."""
+        api._bridge.send_message.return_value = Mock(
+            success=True,
+            data={
+                "address": "/live/error",
+                "params": ["Error handling OSC message"],
+            },
+        )
+
+        result = api.get_clip_notes(0, 1)
+
+        assert result == {
+            "success": False,
+            "error": "Error handling OSC message",
+            "track_id": 0,
+            "clip_index": 1,
+            "notes": [],
+            "note_count": 0,
+        }
+
     def test_check_midi_input_fails_when_clip_has_no_notes(self, api):
         """Test MIDI input check reports no recorded notes."""
         api._bridge.send_message.return_value = Mock(success=True, data={"params": []})

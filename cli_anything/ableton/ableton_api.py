@@ -684,7 +684,20 @@ class AbletonAPI:
                 "note_count": 0,
             }
 
+        if response.data and response.data.get("address") == "/live/error":
+            params = response.data.get("params", [])
+            return {
+                "success": False,
+                "error": params[0] if params else ErrorCode.ABLETON_ERROR.value,
+                "track_id": track_id,
+                "clip_index": clip_index,
+                "notes": [],
+                "note_count": 0,
+            }
+
         params = response.data.get("params", []) if response.data else []
+        if len(params) % 5 == 2:
+            params = params[2:]
         if len(params) % 5 != 0:
             return {
                 "success": False,
