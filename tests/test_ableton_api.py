@@ -355,6 +355,57 @@ class TestAbletonAPI:
         assert result["note_count"] == 0
         assert result["error"] == "No MIDI notes recorded in clip 1 on track 0"
 
+    def test_get_available_instruments(self, api):
+        """Test listing instruments exposed by the AbletonOSC browser extension."""
+        api._bridge.send_message.return_value = Mock(
+            success=True,
+            data={"params": ["Operator", "Wavetable"]},
+        )
+
+        result = api.get_available_instruments()
+
+        assert result == {
+            "success": True,
+            "instruments": ["Operator", "Wavetable"],
+        }
+        api._bridge.send_message.assert_called_once_with("/live/browser/get/instruments")
+
+    def test_load_instrument(self, api):
+        """Test loading an instrument onto a MIDI track."""
+        api._bridge.send_message.return_value = Mock(
+            success=True,
+            data={"params": [0, "Operator"]},
+        )
+
+        result = api.load_instrument(0, "Operator")
+
+        assert result == {
+            "success": True,
+            "track_id": 0,
+            "instrument": "Operator",
+        }
+        api._bridge.send_message.assert_called_once_with(
+            "/live/browser/load/instrument",
+            0,
+            "Operator",
+        )
+
+    def test_load_instrument_reports_abletonosc_error(self, api):
+        """Test load failures are surfaced from the browser extension."""
+        api._bridge.send_message.return_value = Mock(
+            success=True,
+            data={"address": "/live/error", "params": ["Instrument not found: Foo"]},
+        )
+
+        result = api.load_instrument(0, "Foo")
+
+        assert result == {
+            "success": False,
+            "error": "Instrument not found: Foo",
+            "track_id": 0,
+            "instrument": "Foo",
+        }
+
     def test_launch_scene(self, api):
         """Test launch scene."""
         api._bridge.send_message.return_value = Mock(success=True)

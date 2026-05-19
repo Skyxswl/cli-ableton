@@ -740,6 +740,61 @@ class AbletonAPI:
             }
         return result
 
+    def get_available_instruments(self) -> Dict[str, Any]:
+        """List instruments exposed by the AbletonOSC browser extension."""
+        response = self._bridge.send_message(OSC_ADDRESSES["browser_instruments"])
+        if not response.success:
+            return {
+                "success": False,
+                "error": response.error,
+                "instruments": [],
+            }
+        if response.data and response.data.get("address") == "/live/error":
+            params = response.data.get("params", [])
+            return {
+                "success": False,
+                "error": params[0] if params else ErrorCode.ABLETON_ERROR.value,
+                "instruments": [],
+            }
+
+        params = response.data.get("params", []) if response.data else []
+        return {
+            "success": True,
+            "instruments": list(params),
+        }
+
+    def load_instrument(self, track_id: int, instrument: str) -> Dict[str, Any]:
+        """Load an instrument onto a MIDI track through the browser extension."""
+        response = self._bridge.send_message(
+            OSC_ADDRESSES["browser_load_instrument"],
+            track_id,
+            instrument,
+        )
+        if not response.success:
+            return {
+                "success": False,
+                "error": response.error,
+                "track_id": track_id,
+                "instrument": instrument,
+            }
+        if response.data and response.data.get("address") == "/live/error":
+            params = response.data.get("params", [])
+            return {
+                "success": False,
+                "error": params[0] if params else ErrorCode.ABLETON_ERROR.value,
+                "track_id": track_id,
+                "instrument": instrument,
+            }
+
+        params = response.data.get("params", []) if response.data else []
+        loaded_track = int(params[0]) if params else track_id
+        loaded_instrument = str(params[1]) if len(params) > 1 else instrument
+        return {
+            "success": True,
+            "track_id": loaded_track,
+            "instrument": loaded_instrument,
+        }
+
     def record_clip(self, track_id: int, clip_index: int, enable: bool) -> Dict[str, Any]:
         """
         Start or stop clip recording.

@@ -392,6 +392,34 @@ def input_check(ctx: click.Context, track_id: int, clip_index: int) -> None:
     output_result(result, ctx.obj["json_output"])
 
 
+# Instrument Commands
+
+@cli.group()
+def instrument() -> None:
+    """Instrument loading operations."""
+    pass
+
+
+@instrument.command(name="list")
+@click.pass_context
+def instrument_list(ctx: click.Context) -> None:
+    """List loadable instruments."""
+    api = ctx.obj["api"]
+    result = api.get_available_instruments()
+    output_result(result, ctx.obj["json_output"])
+
+
+@instrument.command(name="load")
+@click.argument("track_id", type=int)
+@click.argument("name", type=str)
+@click.pass_context
+def instrument_load(ctx: click.Context, track_id: int, name: str) -> None:
+    """Load an instrument onto a MIDI track."""
+    api = ctx.obj["api"]
+    result = api.load_instrument(track_id, name)
+    output_result(result, ctx.obj["json_output"])
+
+
 # MIDI Effect Commands
 
 @cli.group()

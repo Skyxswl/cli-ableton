@@ -98,6 +98,24 @@ If `Touch Me` does not appear in `input routes`, enable it in Ableton:
 Settings > Link, Tempo & MIDI > MIDI Ports > Touch Me > Track: On
 ```
 
+## Load An Instrument From The Terminal
+
+The `instrument` commands require the browser extension described in
+`ABLETON.md`.
+
+List loadable instruments:
+
+```bash
+cli-ableton --json instrument list
+```
+
+Load `Operator` onto track 0 and play the recorded clip:
+
+```bash
+cli-ableton --json instrument load 0 Operator
+cli-ableton clip launch 0 0
+```
+
 ## Commands
 
 - `status` - Check AbletonOSC connectivity
@@ -109,6 +127,8 @@ Settings > Link, Tempo & MIDI > MIDI Ports > Touch Me > Track: On
 - `input routes` - List input sources available to a track
 - `input route` - Route a track to an external MIDI input
 - `input check` - Check whether a clip contains recorded MIDI notes
+- `instrument list` - List loadable instruments exposed by the Ableton browser
+- `instrument load` - Load an instrument onto a MIDI track
 - `transport play` / `transport stop` / `transport record` - Control playback
 
 Some legacy device, preset, and MIDI-effect commands are still present but need

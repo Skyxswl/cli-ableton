@@ -84,6 +84,8 @@ OSC_ADDRESSES = frozen_dict({
     "scene_stop": "/live/toggle-brothers/scene/stop",
 
     # Device operations
+    "browser_instruments": "/live/browser/get/instruments",
+    "browser_load_instrument": "/live/browser/load/instrument",
     "device_list": "/live/toggle-brothers/device/list",
     "device_select": "/live/toggle-brothers/device/select",
     "device_param_get": "/live/toggle-brothers/device/param/get",

@@ -44,6 +44,35 @@ If `input routes` does not include the device name, Ableton has not exposed it
 to the track yet. Enable the device's `Track` input under `Settings > Link,
 Tempo & MIDI > MIDI Ports`.
 
+## Browser Extension
+
+The upstream AbletonOSC script can inspect devices, but does not expose a
+browser loading endpoint. This local setup adds two extension endpoints to
+`abletonosc/application.py`:
+
+```text
+/live/browser/get/instruments
+/live/browser/load/instrument
+```
+
+After installing or editing the extension, reload AbletonOSC:
+
+```bash
+python - <<'PY'
+from cli_anything.ableton.ableton_api import AbletonAPI
+api = AbletonAPI()
+api.bridge.send_message('/live/api/reload', wait_for_response=False)
+PY
+```
+
+Then load an instrument and launch the recorded clip:
+
+```bash
+cli-ableton --json instrument list
+cli-ableton --json instrument load 0 Operator
+cli-ableton clip launch 0 0
+```
+
 ## Current Coverage
 
 Confirmed against Ableton Live 12 with AbletonOSC:
@@ -61,6 +90,7 @@ Confirmed against Ableton Live 12 with AbletonOSC:
   `/live/track/set/input_routing_type`,
   `/live/track/set/current_monitoring_state`, and `/live/track/set/arm`
 - MIDI note inspection through `/live/clip/get/notes`
+- Instrument listing/loading through the local browser extension endpoints
 
 Legacy commands for devices, presets, scenes, and MIDI effects still need full
 mapping against the current AbletonOSC API.
