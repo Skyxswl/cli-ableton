@@ -416,7 +416,7 @@ class AbletonAPI:
         track_id: int,
         source: str,
         channel: Optional[str] = None,
-        monitor: int = 1,
+        monitor: int = 0,
         arm: bool = True,
     ) -> Dict[str, Any]:
         """

@@ -251,7 +251,7 @@ class TestAbletonAPI:
             track_id=0,
             source="touch me",
             channel="All Channels",
-            monitor=1,
+            monitor=0,
             arm=True,
         )
 
@@ -262,7 +262,7 @@ class TestAbletonAPI:
             call("/live/track/get/available_input_routing_types", 0),
             call("/live/track/set/input_routing_type", 0, "Touch Me", wait_for_response=False),
             call("/live/track/set/input_routing_channel", 0, "All Channels", wait_for_response=False),
-            call("/live/track/set/current_monitoring_state", 0, 1, wait_for_response=False),
+            call("/live/track/set/current_monitoring_state", 0, 0, wait_for_response=False),
             call("/live/track/set/arm", 0, 1, wait_for_response=False),
         ])
 

@@ -82,7 +82,14 @@ If your controller appears as `Touch Me`, route track 0 to it, enable monitor,
 and arm the track:
 
 ```bash
-cli-ableton --json input route "Touch Me" 0 --monitor 1 --arm
+cli-ableton --json input route "Touch Me" 0 --monitor 0 --arm
+```
+
+`--monitor 0` forces Ableton's monitor mode to `In`, which is the right setting
+for real-time playing:
+
+```bash
+cli-ableton --json input route "Touch Me" 0 --monitor 0 --arm
 ```
 
 Record or capture MIDI into a clip in Ableton, then check whether notes were

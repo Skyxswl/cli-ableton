@@ -31,7 +31,7 @@ Use this when testing a controller such as Touch Me as the MIDI source:
 
 ```bash
 cli-ableton --json input routes 0
-cli-ableton --json input route "Touch Me" 0 --monitor 1 --arm
+cli-ableton --json input route "Touch Me" 0 --monitor 0 --arm
 ```
 
 Then record or capture MIDI into a clip in Ableton and verify the clip:

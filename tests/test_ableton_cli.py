@@ -175,7 +175,7 @@ def test_input_route_command_outputs_json():
             "track_id": 0,
             "source": "Touch Me",
             "channel": "All Channels",
-            "monitor": 1,
+            "monitor": 0,
             "armed": True,
         }
 
@@ -190,7 +190,7 @@ def test_input_route_command_outputs_json():
                 "--channel",
                 "All Channels",
                 "--monitor",
-                "1",
+                "0",
                 "--arm",
             ],
         )
@@ -201,10 +201,10 @@ def test_input_route_command_outputs_json():
         "track_id": 0,
         "source": "Touch Me",
         "channel": "All Channels",
-        "monitor": 1,
+        "monitor": 0,
         "armed": True,
     }
-    api.route_midi_input.assert_called_once_with(0, "Touch Me", "All Channels", 1, True)
+    api.route_midi_input.assert_called_once_with(0, "Touch Me", "All Channels", 0, True)
 
 
 def test_input_check_command_outputs_json():

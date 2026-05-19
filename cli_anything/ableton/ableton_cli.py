@@ -364,7 +364,7 @@ def input_routes(ctx: click.Context, track_id: int) -> None:
 @click.argument("source", type=str)
 @click.argument("track_id", type=int)
 @click.option("--channel", type=str, help="Input channel display name")
-@click.option("--monitor", type=int, default=1, help="Ableton monitoring state")
+@click.option("--monitor", type=int, default=0, help="Ableton monitoring state: 0=In, 1=Auto, 2=Off")
 @click.option("--arm/--no-arm", default=True, help="Arm the track for recording")
 @click.pass_context
 def input_route(
